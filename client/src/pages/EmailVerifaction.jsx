@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Input, Typography, Button } from "@material-tailwind/react";
-import { Twitter } from "lucide-react";
-import axios from "axios";
-import { API } from "../global";
+import { Loader, Loader2, Twitter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { emailVerification } from "../store/auth/auth";
 
 export function EmailVerifaction() {
     // emailVerifyToken
+    let { error, isLoading, message } = useSelector(state => state.auth)
     let [token, setToken] = useState("")
-
+    let dispatch = useDispatch()
     const inputRefs = React.useRef([]);
     const [otp, setOtp] = React.useState(Array(6).fill(""));
     useEffect(() => {
@@ -19,21 +20,16 @@ export function EmailVerifaction() {
 
     async function verifyToken(e) {
         e.preventDefault()
-        try {
-            let response = await axios.post(`${API}/emailVerification`, { token }, {
-                withCredentials: true
-            })
-            if (response.data.status) {
-                toast.success(response.data.message)
-                navigate("/login")
-                setToken("")
-            } else {
-                console.log("else", response.data);
-            }
-
-        } catch (error) {
-            console.log(error.response.data)
+        let response = await dispatch(emailVerification(token))
+        if (response.payload.status) {
+            toast.success(message)
+            navigate("/login")
+            setToken("")
+        } else {
+            toast.error(error)
         }
+
+
     }
 
     const handleChange = (index, value) => {
@@ -90,8 +86,12 @@ export function EmailVerifaction() {
                                 <button type="submit"></button>
                             </React.Fragment>
 
+
                         ))}
                     </div>
+                         <Button type="submit" className="mt-6" fullWidth>
+                        {isLoading ? <Loader className="animate-spin mx-auto" /> : "otp verify"}
+                    </Button>
                 </form>
 
                 <Typography

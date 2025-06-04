@@ -16,7 +16,9 @@ let register = async (req, res) => {
     }
     let findUser = await user.findOne({ $or: [{ email }, { username }] });
     if (findUser) {
-      return res.status(400).json({ status: false, error: "user already exists" });
+      return res
+        .status(400)
+        .json({ status: false, error: "user already exists" });
     }
     // hash password
     let hashedPassword = await bcrypt.hash(password, 12);
@@ -89,7 +91,8 @@ let login = async (req, res) => {
 
     res.status(200).json({
       status: true,
-      message: {
+      message: `welcome ${findUser.username}`,
+      user: {
         ...findUser._doc,
         password: "*********",
       },
@@ -208,8 +211,10 @@ let getUser = async (req, res) => {
     }
 
     // finduser
-    let findUser = await user.findById(userId).select("-password")
-    .populate({ path: "tweets", options: { sort: { createdAt: -1 } } });
+    let findUser = await user
+      .findById(userId)
+      .select("-password")
+      .populate({ path: "tweets", options: { sort: { createdAt: -1 } } });
 
     if (!findUser) {
       return res.status(404).json({

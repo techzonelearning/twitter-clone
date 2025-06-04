@@ -4,22 +4,33 @@ import {
     Button,
     Typography,
 } from "@material-tailwind/react";
+import { Loader } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../store/auth/auth";
 
 export default function Login() {
+    let { error, isLoading, message } = useSelector(state => state.auth)
+    let dispatch = useDispatch()
+    let navigate = useNavigate()
     let [user, setUser] = useState({
         email: "",
         password: ""
     })
-    function submitHandler(e) {
+   async function submitHandler(e) {
         e.preventDefault()
-        try {
-            console.log(user);
-
-        } catch (error) {
-            console.log(error);
-
+        let response = await dispatch(loginUser(user))
+        if (response.payload.status) {
+            toast.success(message)
+            navigate("/")
+            setUser({
+                email: "",
+                password: ""
+            })
+        } else {
+            toast.error(error)
         }
     }
     return (
@@ -64,7 +75,7 @@ export default function Login() {
                     </div>
 
                     <Button type="submit" className="mt-6" fullWidth>
-                        sign in
+                    {isLoading ? <Loader className="animate-spin mx-auto" /> : "sign In"}
                     </Button>
                     <Typography color="gray" className="mt-4 text-center font-normal">
                         Don't have an account?{" "}

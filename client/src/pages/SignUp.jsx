@@ -10,38 +10,33 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { API } from "../global"
 import toast from "react-hot-toast";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AlertWithList } from "../components/AlertWithList";
+import { registerUser } from "../store/auth/auth";
+import { Loader } from "lucide-react";
 export default function SignUp() {
-    let [errors, setErrors] = useState(null)
-
+    let { error, isLoading, message } = useSelector(state => state.auth)
+    
     let [user, setUser] = useState({
         username: "",
         email: "",
         password: ""
     })
     let navigate = useNavigate()
-    // let dispatch = useDispatch()
+    let dispatch = useDispatch()
     async function submitHandler(e) {
         e.preventDefault()
-        try {
-            let response = await axios.post(`${API}/register`, user, {
-                withCredentials: true
+        let response = await dispatch(registerUser(user))
+        if (response.payload.status) {
+            toast.success(message)
+            navigate("/email-verifaction")
+            setUser({
+                username: "",
+                email: "",
+                password: ""
             })
-            if (response.data.status) {
-                toast.success(response.data.message)
-                navigate("/email-verifaction")
-                setUser({
-                    username: "",
-                    email: "",
-                    password: ""
-                })
-            } else {
-                console.log("else", response);
-            }
-
-        } catch (error) {
-            setErrors(error.response.data?.error)
+        } else {
+            if (typeof error == "string") toast.error(error)
         }
     }
     return (
@@ -101,7 +96,7 @@ export default function SignUp() {
 
                     {/* error  */}
                     {
-                        errors && <AlertWithList message={errors} />
+                        typeof error == "object" && error != null && <AlertWithList message={error} />
                     }
                     <Checkbox
                         label={
@@ -122,7 +117,7 @@ export default function SignUp() {
                         containerProps={{ className: "-ml-2.5" }}
                     />
                     <Button type="submit" className="mt-6" fullWidth>
-                        sign up
+                        {isLoading ? <Loader className="animate-spin mx-auto" /> : "sign up"}
                     </Button>
                     <Typography color="gray" className="mt-4 text-center font-normal">
                         Already have an account?{" "}
